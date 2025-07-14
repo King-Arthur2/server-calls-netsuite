@@ -1,15 +1,17 @@
+//Modulos necesarios para el sevidor. 
 const express = require('express');
 const axios = require('axios');
 const OAuth = require('oauth-1.0a');
 const crypto = require('crypto');
+require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 const oauth = OAuth({
     consumer: {
-        key: 'a71c9245a29e17b9d1f2706f9f31f6f30aba9583b883716748fc01bf094ea8e7',
-        secret: '53e4a817baa957d25e18673277f64e90426aa9696158e41fc66bebd370335939'
+        key: process.env.CONSUMER_KEY,
+        secret: process.env.CONSUMER_SECRET
     },
     signature_method: 'HMAC-SHA256',
     hash_function(base_string, key) {
@@ -18,13 +20,16 @@ const oauth = OAuth({
 });
 
 const token = {
-    key: 'e140d33229ba44ef29c447279d768e96fc6e213f540aeae96905d860f98eb924',
-    secret: '608851773306998d9269c6ed65d2dd2df66b995941db4b1bf8de458c56305cb6'
+    key: process.env.TOKEN_ID,
+    secret: process.env.TOKEN_SECRET
 };
 
 app.get('/netsuite-data', async (req, res) => {
     const {typeRecord} = req.query;
-    const url = `https://9612244-sb1.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1273&deploy=1&type=${typeRecord}`;
+    if (!typeRecord) {
+        return res.status(400).json({ error: 'El parámetro typeRecord es obligatorio' });
+    }
+    const url = `https://${process.env.ACCOUNT_ID}.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1273&deploy=1&type=${typeRecord}`;
 
     console.log(`Conectando a NetSuite con URL: ${url}`);
     const request_data = {
