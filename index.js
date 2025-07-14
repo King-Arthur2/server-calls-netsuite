@@ -1,30 +1,51 @@
 const express = require('express');
 const axios = require('axios');
+const OAuth = require('oauth-1.0a');
+const crypto = require('crypto');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-// ⚠️ Reemplaza con tu token de acceso obtenido vía OAuth 2.0 (Paso 2)
-const accessToken = 'eyJraWQiOiJjLjk2MTIyNDRfU0IxLjIwMjUtMDUtMjlfMDItNDEtMzEiLCJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjAyOzEyMjQyIiwiYXVkIjpbIjRGRDYzNkM1LUQ1NDQtNEI2Qy05MDE2LTc4N0NDRjE2REI0Mzs5NjEyMjQ0X1NCMSIsIjFkYmRlNTA2MGE0YWNjNTEwMTc2MjlhNmY1N2E1Y2JhMGQ0YzM5MTg0ZTY0MjI4MzQ5MGE0MDExOWZmODJkOGMiXSwic2NvcGUiOlsicmVzdGxldHMiXSwiaXNzIjoiaHR0cHM6Ly9zeXN0ZW0ubmV0c3VpdGUuY29tIiwib2l0IjoxNzUyNTA2NjQ4LCJleHAiOjE3NTI1MTMwNTAsImlhdCI6MTc1MjUwOTQ1MCwianRpIjoiOTYxMjI0NF9TQjEuYS1hLjRjOTQwYjNiLWJkZDMtNDdlYi04MmQ3LTEyMTJiZWU3ZGE1MF8xNzUyNTA2NjQ4NTgzLjE3NTI1MDk0NTA1OTQifQ.OeOGFizKd4kVKo1NeOA-jbVP5MP2SAR_PHhBgSE6Jdd9SZeKnTn56xEr1_lREW3iRfsYM2XdVCUzaQrEuIbWt2YzQKhv9eHGLJDkl9Oea0IFl3MRQ4TkEMcNCcTH77y-OZPSuXaZbjArxmJJ8s6IQlW_xXxTMGpClZlUD-nwAPU9tPle8m3L3NMCqdwQw-kEv5ZMunUatnwRM4gX1bTrAhy-1QPy0381DQVGaUgPXsAvOHunxzvcaiGeWTOwcxmsPDxpBuIy8YcIOJ5-0oKYF3JHUp1cds69ZCQxD56xjFAAXcDsmKzkW4QY1MpGz-VO8CjQkp508XiC5THTb3p2ePx4xp3SSo4rMKPjaINaUnmhOiWG4QDpJhRBHv4wpPsu0J2ODFmuGbX5IkZSao7MFv2MibMxrkROeGQ2raGmZoacNZsCQQemt_dbrvpDm8Dm5QmNjvV7e-Jx8Wg8_l1VHjizILfUbyJJU33SEbKfCB3E1R3otBB8z7Md63D2OhrS0_yM2Urr_r7CPZn_3lpHFp76_2OYxl0L0_wvy41RgsZtvhUWfcDCefT4_zqmehVQJDmjypNT9S3zZqkJ0GBgYBOzpg7Dm4l8lQy0b6v8ns-2DNIZ621sm6zlhS3c26rRaj-ONWZtghptEclGasgGC5oN_kLXiCsiKhR90SbdBZw';
+const oauth = OAuth({
+    consumer: {
+        key: 'a71c9245a29e17b9d1f2706f9f31f6f30aba9583b883716748fc01bf094ea8e7',
+        secret: '53e4a817baa957d25e18673277f64e90426aa9696158e41fc66bebd370335939'
+    },
+    signature_method: 'HMAC-SHA256',
+    hash_function(base_string, key) {
+        return crypto.createHmac('sha256', key).update(base_string).digest('base64');
+    }
+});
+
+const token = {
+    key: 'e140d33229ba44ef29c447279d768e96fc6e213f540aeae96905d860f98eb924',
+    secret: '608851773306998d9269c6ed65d2dd2df66b995941db4b1bf8de458c56305cb6'
+};
 
 app.get('/netsuite-data', async (req, res) => {
-    console.log('Recibiendo solicitud para obtener datos de NetSuite');
-  const url = 'https://9612244-sb1.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1273&deploy=1&type=salesorder';
+    const {typeRecord} = req.query;
+    const url = `https://9612244-sb1.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1273&deploy=1&type=${typeRecord}`;
 
-  const headers = {
-    'Authorization': `Bearer ${accessToken}`,
-    'Content-Type': 'application/json' // Puedes omitir esto si no lo necesitas
-  };
+    console.log(`Conectando a NetSuite con URL: ${url}`);
+    const request_data = {
+        url,
+        method: 'GET'
+    };
 
-  try {
-    const response = await axios.get(url, { headers });
-    res.json(response.data);
-  } catch (error) {
-    console.error('Error al conectarse a NetSuite con Bearer Token:', error.response?.data || error.message);
-    res.status(error.response?.status || 500).json({ error: error.message });
-  }
+    const headers = oauth.toHeader(oauth.authorize(request_data, token));
+    headers['Content-Type'] = 'application/json';
+    headers.Authorization += `, realm="9612244_SB1"`; // Opcional pero recomendable
+
+    try {
+        const response = await axios.get(url, { headers });
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error al conectarse a NetSuite:', error.response?.data || error.message);
+        res.status(error.response?.status || 500).json({ error: error.message });
+    }
 });
 
 app.listen(PORT, () => {
-  console.log(`Servidor escuchando en http://localhost:${PORT}`);
+    console.log(`Servidor TBA activo en http://localhost:${PORT}`);
 });
+
