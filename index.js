@@ -46,7 +46,7 @@ app.get('/netsuite-data', async (req, res) => {
         return res.status(400).json({ error: 'El parámetro endDate es obligatorio' });
     }
 
-    const url = `https://${process.env.ACCOUNT_ID}.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1255&tranType=${tranType}&startDate=${startDate}&endDate=${endDate}`;
+    const url = `https://${process.env.ACCOUNT_ID}.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1255&deploy=1&tranType=${tranType}&startDate=${startDate}&endDate=${endDate}`;
 
     const request_data = {
         url,
