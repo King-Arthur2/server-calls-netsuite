@@ -5,9 +5,12 @@ const OAuth = require('oauth-1.0a');
 const crypto = require('crypto');
 require('dotenv').config();
 
+// Se crea el servidor Express y se configura el puerto
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
+// Configuración de autenticación OAuth 1.0
 const oauth = OAuth({
     consumer: {
         key: process.env.CONSUMER_KEY,
@@ -24,14 +27,15 @@ const token = {
     secret: process.env.TOKEN_SECRET
 };
 
+// Middleware para manejar las peteciones desde Power BI
 app.get('/netsuite-data', async (req, res) => {
     const {typeRecord} = req.query;
-    if (!typeRecord) {
+    /*if (!typeRecord) {
         return res.status(400).json({ error: 'El parámetro typeRecord es obligatorio' });
-    }
-    const url = `https://${process.env.ACCOUNT_ID}.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1273&deploy=1&type=${typeRecord}`;
+    }*/
+    
+    const url = `https://${process.env.ACCOUNT_ID}.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1255&deploy=1`;
 
-    console.log(`Conectando a NetSuite con URL: ${url}`);
     const request_data = {
         url,
         method: 'GET'
@@ -39,7 +43,7 @@ app.get('/netsuite-data', async (req, res) => {
 
     const headers = oauth.toHeader(oauth.authorize(request_data, token));
     headers['Content-Type'] = 'application/json';
-    headers.Authorization += `, realm="9612244_SB1"`; // Opcional pero recomendable
+    headers.Authorization += `, realm="9612244"`; // Opcional pero recomendable
 
     try {
         const response = await axios.get(url, { headers });
@@ -53,4 +57,3 @@ app.get('/netsuite-data', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Servidor TBA activo en http://localhost:${PORT}`);
 });
-
