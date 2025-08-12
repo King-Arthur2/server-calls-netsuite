@@ -29,7 +29,7 @@ const token = {
 
 // Middleware para manejar las peteciones desde Power BI
 app.get('/netsuite-data', async (req, res) => {
-    const {tranType, startDate, endDate, queryNet} = req.query;
+    var {tranType, startDate, endDate, queryNet} = req.query;
 
     if(!queryNet){
         return res.status(400).json({ error: 'El parámetro queryNet es obligatorio' });
