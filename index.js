@@ -29,10 +29,10 @@ const token = {
 
 // Middleware para manejar las peteciones desde Power BI
 app.get('/netsuite-data', async (req, res) => {
-    const {tranType, startDate, endDate, query} = req.query;
+    const {tranType, startDate, endDate, queryNet} = req.query;
 
-    if(!query){
-        return res.status(400).json({ error: 'El parámetro query es obligatorio' });
+    if(!queryNet){
+        return res.status(400).json({ error: 'El parámetro queryNet es obligatorio' });
     }
 
     if(query === 1){
@@ -50,7 +50,7 @@ app.get('/netsuite-data', async (req, res) => {
     }
 
 
-    const url = `https://${process.env.ACCOUNT_ID}.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1255&deploy=1&tranType=${tranType}&startDate=${startDate}&endDate=${endDate}&query=${query}`;
+    const url = `https://${process.env.ACCOUNT_ID}.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1255&deploy=1&tranType=${tranType}&startDate=${startDate}&endDate=${endDate}&queryNet=${queryNet}`;
 
     const request_data = {
         url,
