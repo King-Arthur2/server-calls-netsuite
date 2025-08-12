@@ -29,24 +29,28 @@ const token = {
 
 // Middleware para manejar las peteciones desde Power BI
 app.get('/netsuite-data', async (req, res) => {
-    const {tranType, startDate, endDate} = req.query;
-    /*if (!typeRecord) {
-        return res.status(400).json({ error: 'El parámetro typeRecord es obligatorio' });
-    }*/
+    const {tranType, startDate, endDate, query} = req.query;
 
-    if (!tranType) {
-        return res.status(400).json({ error: 'El parámetro tranType es obligatorio' });
+    if(!query){
+        return res.status(400).json({ error: 'El parámetro query es obligatorio' });
     }
 
-    if (!startDate) {
-        return res.status(400).json({ error: 'El parámetro startDate es obligatorio' });
+    if(query === 1){
+        if (!tranType) {
+            return res.status(400).json({ error: 'El parámetro tranType es obligatorio' });
+        }
+    
+        if (!startDate) {
+            return res.status(400).json({ error: 'El parámetro startDate es obligatorio' });
+        }
+    
+        if (!endDate) {
+            return res.status(400).json({ error: 'El parámetro endDate es obligatorio' });
+        }
     }
 
-    if (!endDate) {
-        return res.status(400).json({ error: 'El parámetro endDate es obligatorio' });
-    }
 
-    const url = `https://${process.env.ACCOUNT_ID}.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1255&deploy=1&tranType=${tranType}&startDate=${startDate}&endDate=${endDate}`;
+    const url = `https://${process.env.ACCOUNT_ID}.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1255&deploy=1&tranType=${tranType}&startDate=${startDate}&endDate=${endDate}&query=${query}`;
 
     const request_data = {
         url,
