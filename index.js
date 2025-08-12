@@ -35,7 +35,7 @@ app.get('/netsuite-data', async (req, res) => {
         return res.status(400).json({ error: 'El parámetro queryNet es obligatorio' });
     }
 
-    if(query === 1){
+    if(queryNet === 1){
         if (!tranType) {
             return res.status(400).json({ error: 'El parámetro tranType es obligatorio' });
         }
