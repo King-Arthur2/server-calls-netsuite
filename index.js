@@ -70,6 +70,33 @@ app.get('/netsuite-data', async (req, res) => {
     }
 });
 
+app.get('/items', async (req, res) => {
+    const { typeSearch } = req.query;
+
+    if (!typeSearch) {
+        return res.status(400).json({ error: 'El parámetro typeSearch es obligatorio' });
+    }
+
+    const url = `https://${process.env.ACCOUNT_ID}.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=1256&deploy=1&typeSearch=${typeSearch}`;
+
+    const request_data = {
+        url,
+        method: 'GET'
+    };
+
+    const headers = oauth.toHeader(oauth.authorize(request_data, token));
+    headers['Content-Type'] = 'application/json';
+    headers.Authorization += `, realm="9612244"`; // Opcional pero recomendable
+
+    try {
+        const response = await axios.get(url, { headers });
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error al conectarse a NetSuite:', error.response?.data || error.message);
+        res.status(error.response?.status || 500).json({ error: error.message });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Servidor TBA activo en http://localhost:${PORT}`);
 });
